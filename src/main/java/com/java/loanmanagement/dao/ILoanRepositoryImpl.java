@@ -37,7 +37,7 @@ public class ILoanRepositoryImpl implements ILoanRepository {
             pst.setDouble(2, loan.getPrincipalAmount());
             pst.setDouble(3, loan.getInterestRate());
             pst.setInt(4, loan.getLoanTerm());
-            pst.setString(5, loan.getLoanType());
+            pst.setString(5, loan.getLoanType().toString());
             pst.setString(6, loan.getLoanStatus().toString().toUpperCase());
 			
 			int rows = pst.executeUpdate();

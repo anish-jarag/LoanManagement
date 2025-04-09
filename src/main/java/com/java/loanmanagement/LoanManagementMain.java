@@ -6,15 +6,16 @@ import com.java.loanmanagement.dao.ILoanRepository;
 import com.java.loanmanagement.dao.ILoanRepositoryImpl;
 import com.java.loanmanagement.model.Customer;
 import com.java.loanmanagement.model.Loan;
-import com.java.loanmanagement.myexception.InvalidLoanException;
 import com.java.loanmanagement.model.LoanStatus;
+import com.java.loanmanagement.model.LoanType;
+import com.java.loanmanagement.myexception.InvalidLoanException;
 
 public class LoanManagementMain {
     static Scanner scanner;
-    static ILoanRepository loanRepo;
+    static ILoanRepository loanService ;
 
     static {
-        loanRepo = new ILoanRepositoryImpl();
+    	loanService = new ILoanRepositoryImpl();
         scanner = new Scanner(System.in);
     }
 
@@ -32,15 +33,13 @@ public class LoanManagementMain {
 
             System.out.println("\n📈 Calculations:");
             System.out.println("4. Calculate EMI by Loan ID");
-            System.out.println("5. Calculate EMI (Custom)");
-            System.out.println("6. Calculate Interest by Loan ID");
-            System.out.println("7. Calculate Interest (Custom)");
+            System.out.println("5. Calculate Interest by Loan ID");
 
             System.out.println("\n🔄 Loan Status & Repayment:");
-            System.out.println("8. Check/Update Loan Status");
-            System.out.println("9. Repay Loan");
+            System.out.println("6. Check/Update Loan Status");
+            System.out.println("7. Repay Loan");
 
-            System.out.println("\n🚪 10. Exit");
+            System.out.println("\n🚪 8. Exit");
 
             System.out.print("\nEnter Your Choice: ");
             choice = scanner.nextInt();
@@ -60,37 +59,85 @@ public class LoanManagementMain {
                     calculateEmiByLoanId();
                     break;
                 case 5:
-                    calculateEmiCustom();
-                    break;
-                case 6:
                     calculateInterestByLoanId();
                     break;
-                case 7:
-                    calculateInterestCustom();
-                    break;
-                case 8:
+                case 6:
                     checkLoanStatus();
                     break;
-                case 9:
+                case 7:
                     repayLoan();
                     break;
-                case 10:
+                case 8:
                     System.out.println("👋 Thank you for using Loan Management System!");
                     break;
                 default:
                     System.out.println("❌ Invalid choice. Please try again.");
             }
-        } while (choice != 10);
+        } while (choice != 8);
     }
 
-    // Stub methods to be implemented next
     private static void applyForLoan() {
-        // TODO: Implement
+    	try {
+            System.out.print("Enter Customer ID: ");
+            int customerId = scanner.nextInt();
+
+            System.out.print("Enter Principal Amount: ");
+            double principal = scanner.nextDouble();
+
+            System.out.print("Enter Interest Rate (%): ");
+            double interestRate = scanner.nextDouble();
+
+            System.out.print("Enter Loan Term (in months): ");
+            int loanTerm = scanner.nextInt();
+
+            scanner.nextLine(); 
+            System.out.print("Enter Loan Type (e.g., Home, Personal, Auto): ");
+            String loanType = scanner.nextLine();
+
+            Loan loan = new Loan();
+            Customer customer = new Customer();
+            customer.setCustomerId(customerId);
+            loan.setCustomer(customer);
+            loan.setPrincipalAmount(principal);
+            loan.setInterestRate(interestRate);
+            loan.setLoanTerm(loanTerm);
+            loan.setLoanType(LoanType.valueOf(loanType));
+            loan.setLoanStatus(LoanStatus.PENDING);
+
+            boolean result = loanService.applyLoan(loan);
+            if (result) {
+                System.out.println("Loan application submitted.");
+            } else {
+                System.out.println("Loan application failed.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
 
     private static void viewLoanById() {
-        // TODO: Implement
+        try {
+            System.out.print("Enter Loan ID: ");
+            int loanId = scanner.nextInt();
+
+            Loan loan = loanService.getLoanById(loanId);
+            if (loan != null) {
+                System.out.println("\n📋 Loan Details:");
+                System.out.println("Loan ID: " + loan.getLoanId());
+                System.out.println("Customer ID: " + loan.getCustomer().getCustomerId());
+                System.out.println("Principal: ₹" + loan.getPrincipalAmount());
+                System.out.println("Interest Rate: " + loan.getInterestRate() + "%");
+                System.out.println("Loan Term: " + loan.getLoanTerm() + " months");
+                System.out.println("Type: " + loan.getLoanType());
+                System.out.println("Status: " + loan.getLoanStatus());
+            } else {
+                System.out.println("Loan not found.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
+
 
     private static void viewAllLoans() {
         // TODO: Implement
@@ -100,23 +147,14 @@ public class LoanManagementMain {
         // TODO: Implement
     }
 
-    private static void calculateEmiCustom() {
-        // TODO: Implement
-    }
-
     private static void calculateInterestByLoanId() {
         // TODO: Implement
     }
-
-    private static void calculateInterestCustom() {
-        // TODO: Implement
-    }
-
     private static void checkLoanStatus() {
         System.out.print("Enter Loan ID to check status: ");
         int loanId = scanner.nextInt();
         try {
-            String result = loanRepo.loanStatus(loanId);
+            String result = loanService.loanStatus(loanId);
             System.out.println("📋 " + result);
         } catch (InvalidLoanException e) {
             System.out.println("❗ " + e.getMessage());

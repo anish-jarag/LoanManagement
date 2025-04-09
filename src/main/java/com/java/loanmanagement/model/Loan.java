@@ -6,7 +6,7 @@ public class Loan {
     private double principalAmount;
     private double interestRate;
     private int loanTerm;
-    private String loanType;
+    private LoanType loanType;
     private LoanStatus loanStatus;
     
 	public int getLoanId() {
@@ -49,11 +49,11 @@ public class Loan {
 		this.loanTerm = loanTerm;
 	}
 	
-	public String getLoanType() {
+	public LoanType getLoanType() {
 		return loanType;
 	}
 	
-	public void setLoanType(String loanType) {
+	public void setLoanType(LoanType loanType) {
 		this.loanType = loanType;
 	}
 	
@@ -77,7 +77,7 @@ public class Loan {
 	}
 	
 	public Loan(int loanId, Customer customer, double principalAmount, double interestRate, int loanTerm,
-			String loanType, LoanStatus loanStatus) {
+			LoanType loanType, LoanStatus loanStatus) {
 		super();
 		this.loanId = loanId;
 		this.customer = customer;
