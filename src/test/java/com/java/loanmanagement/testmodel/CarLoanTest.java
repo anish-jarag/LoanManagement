@@ -1,4 +1,4 @@
-package com.java.loanmanagement;
+package com.java.loanmanagement.testmodel;
 
 import com.java.loanmanagement.model.CarLoan;
 
