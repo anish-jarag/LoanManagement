@@ -1,6 +1,6 @@
 package com.java.loanmanagement.model;
 
-public class HomeLoan {
+public class HomeLoan extends Loan{
 	private String propertyAddress;
     private double propertyValue;
 	

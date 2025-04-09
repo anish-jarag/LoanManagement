@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import com.java.loanmanagement.model.CarLoan;
 import com.java.loanmanagement.model.Customer;
+import com.java.loanmanagement.model.HomeLoan;
 import com.java.loanmanagement.model.Loan;
 import com.java.loanmanagement.model.LoanStatus;
 import com.java.loanmanagement.model.LoanType;
@@ -182,27 +184,58 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 	public Loan getLoanById(int loanId) throws InvalidLoanException {
 	    try {
 	        connection = ConnectionHelper.getConnection();
+	        
+	        // Get basic loan info
 	        String cmd = "select * from loan where loanid = ?";
 	        pst = connection.prepareStatement(cmd);
 	        pst.setInt(1, loanId);
-
 	        ResultSet rs = pst.executeQuery();
 
 	        if (!rs.next()) {
 	            throw new InvalidLoanException("Loan with ID " + loanId + " not found.");
 	        }
 
-	        Loan loan = new Loan();
-	        loan.setLoanId(rs.getInt("loanid"));
+	        Loan loan;
+	        LoanType loanType = LoanType.valueOf(rs.getString("loantype").toUpperCase());
 	        
+	        if (loanType == LoanType.HOMELOAN) {
+	            HomeLoan homeLoan = new HomeLoan();
+	            String homeLoanQuery = "select * from homeloan where loanid = ?";
+	            pst = connection.prepareStatement(homeLoanQuery);
+	            pst.setInt(1, loanId);
+	            ResultSet homeLoanRs = pst.executeQuery();
+	            
+	            if (homeLoanRs.next()) {
+	                homeLoan.setPropertyAddress(homeLoanRs.getString("propertyaddress"));
+	                homeLoan.setPropertyValue(homeLoanRs.getDouble("propertyvalue"));
+	            }
+	            loan = homeLoan;
+	        } 
+	        else if (loanType == LoanType.CARLOAN) {
+	            CarLoan carLoan = new CarLoan();
+	            String carLoanQuery = "select * from carloan where loanid = ?";
+	            pst = connection.prepareStatement(carLoanQuery);
+	            pst.setInt(1, loanId);
+	            ResultSet carLoanRs = pst.executeQuery();
+	            
+	            if (carLoanRs.next()) {
+	                carLoan.setCarModel(carLoanRs.getString("carmodel"));
+	                carLoan.setCarValue(carLoanRs.getDouble("carvalue"));
+	            }
+	            loan = carLoan;
+	        } 
+	        else {
+	            loan = new Loan();
+	        }
+
+	        loan.setLoanId(rs.getInt("loanid"));
 	        Customer customer = new Customer();
 	        customer.setCustomerId(rs.getInt("customerid"));
 	        loan.setCustomer(customer);
-
 	        loan.setPrincipalAmount(rs.getDouble("principalamount"));
 	        loan.setInterestRate(rs.getDouble("interestrate"));
 	        loan.setLoanTerm(rs.getInt("loanterm"));
-	        loan.setLoanType(LoanType.valueOf(rs.getString("loantype").toUpperCase()));
+	        loan.setLoanType(loanType);
 	        loan.setLoanStatus(LoanStatus.valueOf(rs.getString("loanstatus").toUpperCase()));
 
 	        return loan;
@@ -347,7 +380,6 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 	    pst.setDouble(4, remainingAmount);
 	    pst.executeUpdate();
 	}
-
 
 	
 	public void updateLoanStatusIfFullyPaid(Loan loan) throws Exception {

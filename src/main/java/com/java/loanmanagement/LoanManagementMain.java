@@ -5,7 +5,9 @@ import java.util.Scanner;
 
 import com.java.loanmanagement.dao.ILoanRepository;
 import com.java.loanmanagement.dao.ILoanRepositoryImpl;
+import com.java.loanmanagement.model.CarLoan;
 import com.java.loanmanagement.model.Customer;
+import com.java.loanmanagement.model.HomeLoan;
 import com.java.loanmanagement.model.Loan;
 import com.java.loanmanagement.model.LoanStatus;
 import com.java.loanmanagement.model.LoanType;
@@ -161,40 +163,47 @@ public class LoanManagementMain {
         }
     }
 
-    private static void viewLoanById() {
-        try {
-            System.out.print("🔍 Enter Loan ID: ");
-            int loanId = scanner.nextInt();
+	private static void viewLoanById() {
+	    try {
+	        System.out.print("🔍 Enter Loan ID: ");
+	        int loanId = scanner.nextInt();
 
-            Loan loan = loanService.getLoanById(loanId);
+	        Loan loan = loanService.getLoanById(loanId);
 
-            if (loan == null) {
-                System.out.println("⚠️  Loan not found for ID: " + loanId);
-                return;
-            }
+	        System.out.println("\n--------------------------------------------------------------------------------------------");
+	        System.out.println("\t\t\t\t📄 Loan Details");
+	        System.out.println("--------------------------------------------------------------------------------------------");
+	        System.out.printf("%-10s %-12s %-15s %-15s %-12s %-12s %-12s\n",
+	                "| Loan ID", "| Cust ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
+	        System.out.println("--------------------------------------------------------------------------------------------");
 
-            System.out.println("--------------------------------------------------------------------------------------------");
-            System.out.println("\t\t\t\t📄 Loan Details");
-            System.out.println("--------------------------------------------------------------------------------------------");
-            System.out.printf("%-10s %-12s %-15s %-15s %-12s %-12s %-12s\n",
-                    "| Loan ID", "| Cust ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
-            System.out.println("--------------------------------------------------------------------------------------------");
+	        System.out.printf("| %-8d | %-9d | %-13.2f | %-13.2f | %-10d | %-10s | %-9s |\n",
+	                loan.getLoanId(),
+	                loan.getCustomer().getCustomerId(),
+	                loan.getPrincipalAmount(),
+	                loan.getInterestRate(),
+	                loan.getLoanTenure(),
+	                loan.getLoanType(),
+	                loan.getLoanStatus());
 
-            System.out.printf("| %-8d | %-9d | %-13.2f | %-13.2f | %-10d | %-10s | %-9s |\n",
-                    loan.getLoanId(),
-                    loan.getCustomer().getCustomerId(),
-                    loan.getPrincipalAmount(),
-                    loan.getInterestRate(),
-                    loan.getLoanTenure(),
-                    loan.getLoanType(),
-                    loan.getLoanStatus());
+	        if (loan instanceof HomeLoan) {
+	            HomeLoan homeLoan = (HomeLoan) loan;
+	            System.out.println("\n🏠 Home Loan Specific Details:");
+	            System.out.println("  Property Address: " + homeLoan.getPropertyAddress());
+	            System.out.println("  Property Value: ₹" + homeLoan.getPropertyValue());
+	        } 
+	        else if (loan instanceof CarLoan) {
+	            CarLoan carLoan = (CarLoan) loan;
+	            System.out.println("\n🚗 Car Loan Specific Details:");
+	            System.out.println("  Car Model: " + carLoan.getCarModel());
+	            System.out.println("  Car Value: ₹" + carLoan.getCarValue());
+	        }
 
-            System.out.println("--------------------------------------------------------------------------------------------\n");
-
-        } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
-        }
-    }
+	        System.out.println("--------------------------------------------------------------------------------------------\n");
+	    } catch (Exception e) {
+	        System.out.println("❌ Error: " + e.getMessage());
+	    }
+	}
 
 
     private static void viewAllLoans() {

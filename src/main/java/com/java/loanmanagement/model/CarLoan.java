@@ -1,6 +1,6 @@
 package com.java.loanmanagement.model;
 
-public class CarLoan {
+public class CarLoan extends Loan{
 	private String carModel;
     private double carValue;
 	
