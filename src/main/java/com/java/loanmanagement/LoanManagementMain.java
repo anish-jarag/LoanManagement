@@ -196,15 +196,24 @@ public class LoanManagementMain {
     }
     
     private static void checkLoanStatus() {
-        System.out.print("Enter Loan ID to check status: ");
+        System.out.print("🔍 Enter Loan ID to check status: ");
         int loanId = scanner.nextInt();
         try {
             String result = loanService.loanStatus(loanId);
-            System.out.println("📋 " + result);
+
+            System.out.println("\n------------------------------------------------");
+            System.out.println("\t\tLoan Status Result");
+            System.out.println("------------------------------------------------");
+            System.out.println(result);
+            System.out.println("------------------------------------------------\n");
+
         } catch (InvalidLoanException e) {
-            System.out.println("❗ " + e.getMessage());
+            System.out.println("\n------------------------------------------------");
+            System.out.println("❗ Error: " + e.getMessage());
+            System.out.println("------------------------------------------------\n");
         }
     }
+
 
     private static void repayLoan() {
         // TODO: Implement
