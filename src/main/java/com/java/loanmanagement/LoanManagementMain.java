@@ -1,5 +1,6 @@
 package com.java.loanmanagement;
 
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -124,42 +125,85 @@ public class LoanManagementMain {
 		
 	}
 
-	private static void applyForLoan() {
-    	try {
-            System.out.print("Enter Customer ID: ");
+    private static void applyForLoan() {
+        try {
+            System.out.println("\n======================");
+            System.out.println("   🏦 APPLY FOR LOAN");
+            System.out.println("======================");
+            
+            System.out.print("\nEnter Customer ID: ");
             int customerId = scanner.nextInt();
-
-            System.out.print("Enter Principal Amount: ");
+            scanner.nextLine(); 
+            
+            System.out.print("Enter Principal Amount: ₹");
             double principal = scanner.nextDouble();
-
-            System.out.print("Enter Interest Rate (%): ");
+            
+            System.out.print("Enter Annual Interest Rate (%): ");
             double interestRate = scanner.nextDouble();
-
+            
             System.out.print("Enter Loan Term (in months): ");
             int loanTerm = scanner.nextInt();
-
             scanner.nextLine(); 
-            System.out.print("Enter Loan Type (e.g., HOMELOAN, CARLOAN): ");
-            String loanType = scanner.nextLine().toUpperCase();
-
-            Loan loan = new Loan();
+            
+            System.out.print("Enter Loan Type (HOMELOAN/CARLOAN): ");
+            String loanTypeStr = scanner.nextLine().toUpperCase();
+            LoanType loanType;
+            
+            try {
+                loanType = LoanType.valueOf(loanTypeStr);
+            } catch (IllegalArgumentException e) {
+                System.out.println("❌ Invalid loan type. Please enter either HOMELOAN or CARLOAN.");
+                return;
+            }
+            
+            Loan loan;
             Customer customer = new Customer();
             customer.setCustomerId(customerId);
-            loan.setCustomer(customer);
-            loan.setPrincipalAmount(principal);
-            loan.setInterestRate(interestRate);
-            loan.setLoanTerm(loanTerm);
-            loan.setLoanType(LoanType.valueOf(loanType));
-            loan.setLoanStatus(LoanStatus.PENDING);
-
-            boolean result = loanService.applyLoan(loan);
-            if (result) {
-                System.out.println("Loan application submitted.");
-            } else {
-                System.out.println("Loan application failed.");
+            
+            if (loanType == LoanType.HOMELOAN) {
+                System.out.println("\n🏠 Home Loan Details:");
+                System.out.print("  Property Address: ");
+                String address = scanner.nextLine();
+                
+                System.out.print("  Property Value: ₹");
+                double value = scanner.nextDouble();
+                scanner.nextLine(); 
+                
+                loan = new HomeLoan(0, customer, principal, interestRate, 
+                                  loanTerm, LoanStatus.PENDING, address, value);
+            } 
+            else if (loanType == LoanType.CARLOAN) {
+                System.out.println("\n🚗 Car Loan Details:");
+                System.out.print("  Car Model: ");
+                String model = scanner.nextLine();
+                
+                System.out.print("  Car Value: ₹");
+                double value = scanner.nextDouble();
+                scanner.nextLine(); 
+                
+                loan = new CarLoan(0, customer, principal, interestRate, 
+                                 loanTerm, LoanStatus.PENDING, model, value);
+            } 
+            else {
+                loan = new Loan(0, customer, principal, interestRate, 
+                              loanTerm, loanType, LoanStatus.PENDING);
             }
+            
+            boolean success = loanService.applyLoan(loan);
+            
+            if (success) {
+                System.out.println("\n🎉 Loan application submitted successfully!");
+                System.out.println("   Your Loan ID is: " + loan.getLoanId());
+            } else {
+                System.out.println("\n❌ Loan application failed. Please try again.");
+            }
+            
+        } catch (InputMismatchException e) {
+            System.out.println("❌ Invalid input. Please enter the correct data type.");
+            scanner.nextLine(); 
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("❌ An unexpected error occurred: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

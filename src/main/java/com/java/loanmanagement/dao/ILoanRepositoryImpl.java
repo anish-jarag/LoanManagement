@@ -3,6 +3,7 @@ package com.java.loanmanagement.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,45 +24,77 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 
 	@Override
 	public boolean applyLoan(Loan loan) {
-        System.out.print("Do you want to proceed with the loan application? (yes/no): ");
-        String confirm = scanner.nextLine().trim().toLowerCase();
+	    System.out.print("Do you want to proceed with the loan application? (yes/no): ");
+	    String confirm = scanner.nextLine().trim().toLowerCase();
 
-        if (!confirm.equals("yes")) {
-            System.out.println("Loan application cancelled by user.");
-            return false;
-        }
-        
-        try {
-			connection = ConnectionHelper.getConnection();
-			String cmd = "insert into loan (customerid, principalamount, interestrate, loanterm, loantype, loanstatus) "
-					+ "values (?, ?, ?, ?, ?, ?)";
-			
-			pst = connection.prepareStatement(cmd);
-			
-			pst.setInt(1, loan.getCustomer().getCustomerId());
-            pst.setDouble(2, loan.getPrincipalAmount());
-            pst.setDouble(3, loan.getInterestRate());
-            pst.setInt(4, loan.getLoanTenure());
-            pst.setString(5, loan.getLoanType().toString());
-            pst.setString(6, loan.getLoanStatus().toString().toUpperCase());
-			
-			int rows = pst.executeUpdate();
-			
-			if (rows > 0) {
-                System.out.println("Loan application submitted successfully.");
-                System.out.println("Your Loan Id is " + loan.getLoanId());
-                return true;
-            } else {
-                System.out.println("Failed to apply for loan.");
-                return false;
-            }
-			
-		} catch (Exception e) {
-			System.out.println("Error " + e.getMessage());
-			e.printStackTrace();
-			return false;
-		}
-        
+	    if (!confirm.equals("yes")) {
+	        System.out.println("Loan application cancelled by user.");
+	        return false;
+	    }
+	    
+	    Connection connection = null;
+	    PreparedStatement pst = null;
+	    ResultSet generatedKeys = null;
+	    
+	    try {
+	        connection = ConnectionHelper.getConnection();
+	        
+	        String loanInsertSQL = "insert into loan (customerid, principalamount, interestrate, " +
+	                             "loanterm, loantype, loanstatus) values (?, ?, ?, ?, ?, ?)";
+	        
+	        pst = connection.prepareStatement(loanInsertSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+	        
+	        pst.setInt(1, loan.getCustomer().getCustomerId());
+	        pst.setDouble(2, loan.getPrincipalAmount());
+	        pst.setDouble(3, loan.getInterestRate());
+	        pst.setInt(4, loan.getLoanTenure());
+	        pst.setString(5, loan.getLoanType().toString());
+	        pst.setString(6, loan.getLoanStatus().toString());
+	        
+	        int affectedRows = pst.executeUpdate();
+	        
+	        if (affectedRows == 0) {
+	            throw new SQLException("Creating loan failed, no rows affected.");
+	        }
+	        
+	        generatedKeys = pst.getGeneratedKeys();
+	        if (!generatedKeys.next()) {
+	            throw new SQLException("Creating loan failed, no ID obtained.");
+	        }
+	        
+	        int loanId = generatedKeys.getInt(1);
+	        loan.setLoanId(loanId); 
+	        
+	        if (loan instanceof HomeLoan) {
+	            HomeLoan homeLoan = (HomeLoan) loan;
+	            String homeLoanSQL = "insert into homeloan (loanid, propertyaddress, propertyvalue) " +
+	                               "values (?, ?, ?)";
+	            
+	            pst = connection.prepareStatement(homeLoanSQL);
+	            pst.setInt(1, loanId);
+	            pst.setString(2, homeLoan.getPropertyAddress());
+	            pst.setDouble(3, homeLoan.getPropertyValue());
+	            pst.executeUpdate();
+	        } 
+	        else if (loan instanceof CarLoan) {
+	            CarLoan carLoan = (CarLoan) loan;
+	            String carLoanSQL = "insert into carloan (loanid, carmodel, carvalue) " +
+	                              "values (?, ?, ?)";
+	            
+	            pst = connection.prepareStatement(carLoanSQL);
+	            pst.setInt(1, loanId);
+	            pst.setString(2, carLoan.getCarModel());
+	            pst.setDouble(3, carLoan.getCarValue());
+	            pst.executeUpdate();
+	        }
+	        
+	        return true;
+	        
+	    } catch (Exception e) {
+	        System.out.println("❌ Error applying for loan: " + e.getMessage());
+	        e.printStackTrace();
+	        return false;
+	    } 
 	}
 	
 	@Override
@@ -97,39 +130,7 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 	        
 	        double creditScore = rs.getDouble("creditscore");
 	        String updatedStatus = creditScore > 650.0 ? "APPROVED" : "REJECTED";
-	        
-	        if (updatedStatus.equals("APPROVED")) {
-	        	Loan loan = getLoanById(loanId);
-	            if (loan.getLoanType() == LoanType.HOMELOAN) {
-	                System.out.print("Enter Property Address: ");
-	                String address = scanner.nextLine();
 
-	                System.out.print("Enter Property Value: ");
-	                int value = scanner.nextInt(); scanner.nextLine();
-
-	                String insertHomeLoan = "insert into homeloan (loanid, propertyaddress, propertyvalue) values (?, ?, ?)";
-	                pst = connection.prepareStatement(insertHomeLoan);
-	                pst.setInt(1, loanId);
-	                pst.setString(2, address);
-	                pst.setInt(3, value);
-	                pst.executeUpdate();
-	            } else if (loan.getLoanType() == LoanType.CARLOAN) {
-	                System.out.print("Enter Car Model: ");
-	                String model = scanner.nextLine();
-
-	                System.out.print("Enter Car Value: ");
-	                int value = scanner.nextInt(); scanner.nextLine(); 
-
-	                String insertCarLoan = "insert into carloan (loanid, carmodel, carvalue) values (?, ?, ?)";
-	                pst = connection.prepareStatement(insertCarLoan);
-	                pst.setInt(1, loanId);
-	                pst.setString(2, model);
-	                pst.setInt(3, value);
-	                pst.executeUpdate();
-	            }
-	        }
-
-	        
 	        cmd = "update loan set loanstatus = ? where loanid = ?";
 	        pst = connection.prepareStatement(cmd);
 	        pst.setString(1, updatedStatus);

@@ -28,11 +28,12 @@ public class HomeLoan extends Loan{
 	public HomeLoan() {
 		
 	}
+
 	
-	public HomeLoan(String propertyAddress, double propertyValue) {
-		super();
-		this.propertyAddress = propertyAddress;
-		this.propertyValue = propertyValue;
-	}
+    public HomeLoan(int loanId, Customer customer, double principalAmount, double interestRate, int loanTerm, LoanStatus loanStatus, String propertyAddress, double propertyValue) {
+        super(loanId, customer, principalAmount, interestRate, loanTerm, LoanType.HOMELOAN, loanStatus);
+        this.propertyAddress = propertyAddress;
+        this.propertyValue = propertyValue;
+    }
     
 }

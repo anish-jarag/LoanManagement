@@ -29,10 +29,10 @@ public class CarLoan extends Loan{
 		
 	}
 	
-	public CarLoan(String carModel, double carValue) {
-		super();
-		this.carModel = carModel;
-		this.carValue = carValue;
-	}
+    public CarLoan(int loanId, Customer customer, double principalAmount, double interestRate, int loanTerm, LoanStatus loanStatus, String carModel, double carValue) {
+        super(loanId, customer, principalAmount, interestRate, loanTerm, LoanType.CARLOAN, loanStatus);
+        this.carModel = carModel;
+        this.carValue = carValue;
+    }
   
 }
