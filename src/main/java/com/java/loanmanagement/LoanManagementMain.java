@@ -92,8 +92,8 @@ public class LoanManagementMain {
             int loanTerm = scanner.nextInt();
 
             scanner.nextLine(); 
-            System.out.print("Enter Loan Type (e.g., Home, Personal, Auto): ");
-            String loanType = scanner.nextLine();
+            System.out.print("Enter Loan Type (e.g., HOMELOAN, CARLOAN): ");
+            String loanType = scanner.nextLine().toUpperCase();
 
             Loan loan = new Loan();
             Customer customer = new Customer();
@@ -194,6 +194,7 @@ public class LoanManagementMain {
     private static void calculateInterestByLoanId() {
         // TODO: Implement
     }
+    
     private static void checkLoanStatus() {
         System.out.print("Enter Loan ID to check status: ");
         int loanId = scanner.nextInt();
