@@ -5,7 +5,7 @@ public class Loan {
     private Customer customer;
     private double principalAmount;
     private double interestRate;
-    private int loanTerm;
+    private int LoanTenure;
     private LoanType loanType;
     private LoanStatus loanStatus;
     
@@ -41,12 +41,12 @@ public class Loan {
 		this.interestRate = interestRate;
 	}
 	
-	public int getLoanTerm() {
-		return loanTerm;
+	public int getLoanTenure() {
+		return LoanTenure;
 	}
 	
 	public void setLoanTerm(int loanTerm) {
-		this.loanTerm = loanTerm;
+		this.LoanTenure = loanTerm;
 	}
 	
 	public LoanType getLoanType() {
@@ -68,7 +68,7 @@ public class Loan {
 	@Override
 	public String toString() {
 		return "Loan [loanId=" + loanId + ", customer=" + customer + ", principalAmount=" + principalAmount
-				+ ", interestRate=" + interestRate + ", loanTerm=" + loanTerm + ", loanType=" + loanType
+				+ ", interestRate=" + interestRate + ", loanTerm=" + LoanTenure + ", loanType=" + loanType
 				+ ", loanStatus=" + loanStatus + "]";
 	}
 	
@@ -83,7 +83,7 @@ public class Loan {
 		this.customer = customer;
 		this.principalAmount = principalAmount;
 		this.interestRate = interestRate;
-		this.loanTerm = loanTerm;
+		this.LoanTenure = loanTerm;
 		this.loanType = loanType;
 		this.loanStatus = loanStatus;
 	}

@@ -30,17 +30,20 @@ public class LoanManagementMain {
             System.out.println("\n📝 Loan Operations:");
             System.out.println("1. Apply for Loan");
             System.out.println("2. View Loan By ID");
-            System.out.println("3. View All Loans");
+            System.out.println("3. View Loans By Customer ID");
+            System.out.println("4. View All Loans");
 
             System.out.println("\n📈 Calculations:");
-            System.out.println("4. Calculate EMI by Loan ID");
-            System.out.println("5. Calculate Interest by Loan ID");
+            System.out.println("5. Calculate EMI by Loan ID");
+            System.out.println("6. Calculate Interest by Loan ID");
 
             System.out.println("\n🔄 Loan Status & Repayment:");
-            System.out.println("6. Check/Update Loan Status");
-            System.out.println("7. Repay Loan");
+            System.out.println("7. Check/Update Loan Status");
+            System.out.println("8. Repay Loan");
+            
 
-            System.out.println("\n🚪 8. Exit");
+
+            System.out.println("\n🚪 9. Exit");
 
             System.out.print("\nEnter Your Choice: ");
             choice = scanner.nextInt();
@@ -54,30 +57,72 @@ public class LoanManagementMain {
                     viewLoanById();
                     break;
                 case 3:
-                    viewAllLoans();
+                	viewLoansByCustomerId();
                     break;
                 case 4:
-                    calculateEmiByLoanId();
+                    viewAllLoans();
                     break;
                 case 5:
-                    calculateInterestByLoanId();
+                    calculateEmiByLoanId();
                     break;
                 case 6:
-                    checkLoanStatus();
+                    calculateInterestByLoanId();
                     break;
                 case 7:
-                    repayLoan();
+                    checkLoanStatus();
                     break;
                 case 8:
-                    System.out.println("👋 Thank you for using Loan Management System!");
+                    repayLoan();
+                    break;
+                case 9:
+                    System.out.println("Thank you for using Loan Management System!");
                     break;
                 default:
                     System.out.println("❌ Invalid choice. Please try again.");
             }
-        } while (choice != 8);
+        } while (choice != 9);
     }
 
-    private static void applyForLoan() {
+    private static void viewLoansByCustomerId() {
+    	try {
+            System.out.print("🔍 Enter Customer ID: ");
+            int customerId = scanner.nextInt();
+
+            List<Loan> loans = loanService.getLoansByCustomerId(customerId);
+
+            if (loans.isEmpty()) {
+                System.out.println("⚠️  No loans found for Customer ID: " + customerId);
+                return;
+            }
+
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.println("\t\t\t\t📄 Loan Records for Customer ID " + customerId);
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.printf("%-10s %-15s %-15s %-12s %-12s %-12s\n",
+                    "| Loan ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
+            System.out.println("--------------------------------------------------------------------------------------------");
+
+            for (Loan loan : loans) {
+                System.out.printf("| %-8d | %-13.2f | %-13.2f | %-10d | %-10s | %-9s |\n",
+                        loan.getLoanId(),
+                        loan.getPrincipalAmount(),
+                        loan.getInterestRate(),
+                        loan.getLoanTenure(),
+                        loan.getLoanType(),
+                        loan.getLoanStatus());
+            }
+
+            System.out.println("--------------------------------------------------------------------------------------------\n");
+
+        } catch (InvalidLoanException e) {
+            System.out.println("❗ " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+		
+	}
+
+	private static void applyForLoan() {
     	try {
             System.out.print("Enter Customer ID: ");
             int customerId = scanner.nextInt();
@@ -140,7 +185,7 @@ public class LoanManagementMain {
                     loan.getCustomer().getCustomerId(),
                     loan.getPrincipalAmount(),
                     loan.getInterestRate(),
-                    loan.getLoanTerm(),
+                    loan.getLoanTenure(),
                     loan.getLoanType(),
                     loan.getLoanStatus());
 
@@ -162,7 +207,7 @@ public class LoanManagementMain {
             }
 
             System.out.println("--------------------------------------------------------------------------------------------");
-            System.out.println("\t\t\t\t📋 All Loan Records");
+            System.out.println("\t\t\t\t📄 All Loan Records");
             System.out.println("--------------------------------------------------------------------------------------------");
             System.out.printf("%-10s %-12s %-15s %-15s %-12s %-12s %-12s\n",
                     "| Loan ID", "| Cust ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
@@ -174,7 +219,7 @@ public class LoanManagementMain {
                         loan.getCustomer().getCustomerId(),
                         loan.getPrincipalAmount(),
                         loan.getInterestRate(),
-                        loan.getLoanTerm(),
+                        loan.getLoanTenure(),
                         loan.getLoanType(),
                         loan.getLoanStatus());
             }
@@ -188,11 +233,43 @@ public class LoanManagementMain {
 
 
     private static void calculateEmiByLoanId() {
-        // TODO: Implement
+        System.out.print("Enter Loan ID to calculate EMI: ");
+        int loanId = scanner.nextInt();
+
+        try {
+            double emi = loanService.calculateEMI(loanId);
+            System.out.println("💰 Monthly EMI for Loan ID " + loanId + " is: ₹" + emi);
+        } catch (InvalidLoanException e) {
+            System.out.println("❗ " + e.getMessage());
+        }
     }
 
+
     private static void calculateInterestByLoanId() {
-        // TODO: Implement
+    	System.out.print("Enter Loan ID to calculate interest: ");
+        int loanId = scanner.nextInt();
+        try {
+            double interest = loanService.calculateInterest(loanId);
+            Loan loan = loanService.getLoanById(loanId); 
+
+            if (loan == null) {
+                System.out.println("\n❗ Loan with ID " + loanId + " not found.");
+                return;
+            }
+
+            System.out.println("\n------------------------------------------------------------");
+            System.out.println("\t      Interest Calculation Summary");
+            System.out.println("------------------------------------------------------------");
+            System.out.printf("Loan ID       : %d\n", loan.getLoanId());
+            System.out.printf("Principal     : ₹%.2f\n", loan.getPrincipalAmount());
+            System.out.printf("Rate          : %.2f%%\n", loan.getInterestRate());
+            System.out.printf("Term          : %d months\n", loan.getLoanTenure());
+            System.out.printf("Interest      : ₹%.2f\n", interest);
+            System.out.println("------------------------------------------------------------\n");
+
+        } catch (InvalidLoanException e) {
+            System.out.println("\n❗ " + e.getMessage());
+        }
     }
     
     private static void checkLoanStatus() {
@@ -204,8 +281,8 @@ public class LoanManagementMain {
             System.out.println("\n------------------------------------------------");
             System.out.println("\t\tLoan Status Result");
             System.out.println("------------------------------------------------");
-            System.out.println(result);
-            System.out.println("------------------------------------------------\n");
+            System.out.print("\t" + result);
+            System.out.println("\n------------------------------------------------\n");
 
         } catch (InvalidLoanException e) {
             System.out.println("\n------------------------------------------------");
@@ -216,6 +293,21 @@ public class LoanManagementMain {
 
 
     private static void repayLoan() {
-        // TODO: Implement
+        System.out.print("Enter Loan ID to repay: ");
+        int loanId = scanner.nextInt();
+
+        System.out.print("Enter repayment amount: ");
+        double amount = scanner.nextDouble();
+
+        try {
+            String result = loanService.loanRepayment(loanId, amount);
+            System.out.println("\n---------- Loan Repayment Summary ----------");
+            System.out.println(result);
+            System.out.println("---------------------------------------------");
+        } catch (InvalidLoanException e) {
+            System.out.println("❗ " + e.getMessage());
+        }
     }
+
+
 }
