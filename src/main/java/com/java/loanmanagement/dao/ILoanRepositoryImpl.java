@@ -3,10 +3,14 @@ package com.java.loanmanagement.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import com.java.loanmanagement.model.Customer;
 import com.java.loanmanagement.model.Loan;
+import com.java.loanmanagement.model.LoanStatus;
+import com.java.loanmanagement.model.LoanType;
 import com.java.loanmanagement.myexception.InvalidLoanException;
 import com.java.loanmanagement.util.ConnectionHelper;
 
@@ -109,14 +113,72 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 
 	@Override
 	public List<Loan> getAllLoan() {
-		// TODO Auto-generated method stub
-		return null;
+	    List<Loan> loans = new ArrayList<>();
+
+	    try {
+	        connection = ConnectionHelper.getConnection();
+	        String cmd = "select * from loan";
+	        pst = connection.prepareStatement(cmd);
+	        ResultSet rs = pst.executeQuery();
+
+	        while (rs.next()) {
+	            Loan loan = new Loan();
+	            loan.setLoanId(rs.getInt("loanid"));
+
+	            Customer customer = new Customer();
+	            customer.setCustomerId(rs.getInt("customerid"));
+	            loan.setCustomer(customer);
+
+	            loan.setPrincipalAmount(rs.getDouble("principalamount"));
+	            loan.setInterestRate(rs.getDouble("interestrate"));
+	            loan.setLoanTerm(rs.getInt("loanterm"));
+	            loan.setLoanType(LoanType.valueOf(rs.getString("loantype").toUpperCase()));
+	            loan.setLoanStatus(LoanStatus.valueOf(rs.getString("loanstatus").toUpperCase()));
+
+	            loans.add(loan);
+	        }
+
+	    } catch (Exception e) {
+	        System.out.println("Error while fetching loan list: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+
+	    return loans;
 	}
+
 
 	@Override
 	public Loan getLoanById(int loanId) throws InvalidLoanException {
-		// TODO Auto-generated method stub
-		return null;
+	    try {
+	        connection = ConnectionHelper.getConnection();
+	        String cmd = "select * from loan where loanid = ?";
+	        pst = connection.prepareStatement(cmd);
+	        pst.setInt(1, loanId);
+
+	        ResultSet rs = pst.executeQuery();
+
+	        if (!rs.next()) {
+	            throw new InvalidLoanException("Loan with ID " + loanId + " not found.");
+	        }
+
+	        Loan loan = new Loan();
+	        loan.setLoanId(rs.getInt("loanid"));
+	        
+	        Customer customer = new Customer();
+	        customer.setCustomerId(rs.getInt("customerid"));
+	        loan.setCustomer(customer);
+
+	        loan.setPrincipalAmount(rs.getDouble("principalamount"));
+	        loan.setInterestRate(rs.getDouble("interestrate"));
+	        loan.setLoanTerm(rs.getInt("loanterm"));
+	        loan.setLoanType(LoanType.valueOf(rs.getString("loantype").toUpperCase()));
+	        loan.setLoanStatus(LoanStatus.valueOf(rs.getString("loanstatus").toUpperCase()));
+
+	        return loan;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw new InvalidLoanException("Unable to retrieve loan with ID " + loanId);
+	    }
 	}
 
 	@Override

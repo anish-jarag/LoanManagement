@@ -1,5 +1,6 @@
 package com.java.loanmanagement;
 
+import java.util.List;
 import java.util.Scanner;
 
 import com.java.loanmanagement.dao.ILoanRepository;
@@ -117,31 +118,74 @@ public class LoanManagementMain {
 
     private static void viewLoanById() {
         try {
-            System.out.print("Enter Loan ID: ");
+            System.out.print("🔍 Enter Loan ID: ");
             int loanId = scanner.nextInt();
 
             Loan loan = loanService.getLoanById(loanId);
-            if (loan != null) {
-                System.out.println("\n📋 Loan Details:");
-                System.out.println("Loan ID: " + loan.getLoanId());
-                System.out.println("Customer ID: " + loan.getCustomer().getCustomerId());
-                System.out.println("Principal: ₹" + loan.getPrincipalAmount());
-                System.out.println("Interest Rate: " + loan.getInterestRate() + "%");
-                System.out.println("Loan Term: " + loan.getLoanTerm() + " months");
-                System.out.println("Type: " + loan.getLoanType());
-                System.out.println("Status: " + loan.getLoanStatus());
-            } else {
-                System.out.println("Loan not found.");
+
+            if (loan == null) {
+                System.out.println("⚠️  Loan not found for ID: " + loanId);
+                return;
             }
+
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.println("\t\t\t\t📄 Loan Details");
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.printf("%-10s %-12s %-15s %-15s %-12s %-12s %-12s\n",
+                    "| Loan ID", "| Cust ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
+            System.out.println("--------------------------------------------------------------------------------------------");
+
+            System.out.printf("| %-8d | %-9d | %-13.2f | %-13.2f | %-10d | %-10s | %-9s |\n",
+                    loan.getLoanId(),
+                    loan.getCustomer().getCustomerId(),
+                    loan.getPrincipalAmount(),
+                    loan.getInterestRate(),
+                    loan.getLoanTerm(),
+                    loan.getLoanType(),
+                    loan.getLoanStatus());
+
+            System.out.println("--------------------------------------------------------------------------------------------\n");
+
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
 
     private static void viewAllLoans() {
-        // TODO: Implement
+        try {
+            List<Loan> loans = loanService.getAllLoan();
+
+            if (loans.isEmpty()) {
+                System.out.println("⚠️  No loan records found.");
+                return;
+            }
+
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.println("\t\t\t\t📋 All Loan Records");
+            System.out.println("--------------------------------------------------------------------------------------------");
+            System.out.printf("%-10s %-12s %-15s %-15s %-12s %-12s %-12s\n",
+                    "| Loan ID", "| Cust ID", "| Principal (₹)", "| Interest (%)", "| Term (mo)", "| Type", "| Status   |");
+            System.out.println("--------------------------------------------------------------------------------------------");
+
+            for (Loan loan : loans) {
+                System.out.printf("| %-8d | %-9d | %-13.2f | %-13.2f | %-10d | %-10s | %-9s |\n",
+                        loan.getLoanId(),
+                        loan.getCustomer().getCustomerId(),
+                        loan.getPrincipalAmount(),
+                        loan.getInterestRate(),
+                        loan.getLoanTerm(),
+                        loan.getLoanType(),
+                        loan.getLoanStatus());
+            }
+
+            System.out.println("--------------------------------------------------------------------------------------------\n");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error fetching loan records: " + e.getMessage());
+        }
     }
+
 
     private static void calculateEmiByLoanId() {
         // TODO: Implement
