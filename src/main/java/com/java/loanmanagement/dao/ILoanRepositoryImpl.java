@@ -285,35 +285,33 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 	            return "❌ Amount is less than one EMI (₹" + emi + "). Minimum required: ₹" + emi;
 	        }
 
-	        int paidEmis = (int)(amount / emi);
 	        int remainingTerm = loan.getLoanTenure();
+	        double totalDue = emi * remainingTerm;
+
+	        double actualPayment = Math.min(amount, totalDue);
+	        int paidEmis = (int) (actualPayment / emi);
+	        double usedAmount = paidEmis * emi;
+	        double refundAmount = amount - usedAmount;
+	        double remainingAmount = totalDue - usedAmount;
 
 	        if (paidEmis >= remainingTerm) {
-	            paidEmis = remainingTerm;
 	            loan.setLoanStatus(LoanStatus.PAID);
-	            loan.setLoanTerm(0);
-	        } else {
-	            loan.setLoanTerm(remainingTerm - paidEmis);
+	            updateLoanStatusIfFullyPaid(loan);
+	            remainingAmount = 0;
 	        }
 
-	        double originalPrincipal = loan.getPrincipalAmount();
-	        double principalPerEmi = originalPrincipal / remainingTerm;
-	        double principalPaid = paidEmis * principalPerEmi;
-	        double updatedPrincipal = originalPrincipal - principalPaid;
-
-	        loan.setPrincipalAmount(Math.round(updatedPrincipal * 100.0) / 100.0); 
-
-	        updateLoanAfterRepayment(loan);
+	        logRepayment(loanId, usedAmount, paidEmis, remainingAmount);
 
 	        return String.format(
 	            "💸 Payment of ₹%.2f accepted.\n" +
 	            "✅ %d EMI(s) paid @ ₹%.2f each.\n" +
-	            "📊 Remaining EMIs: %d\n" +
-	            "💰 Remaining Principal: ₹%.2f\n" +
-	            "📌 Loan Status: %s",
-	            amount, paidEmis, emi, loan.getLoanTenure(),
-	            loan.getPrincipalAmount(),
-	            (loan.getLoanStatus() == LoanStatus.PAID ? "✅ PAID" : "⏳ " + loan.getLoanStatus())
+	            "📊 Remaining Amount: ₹%.2f\n" +
+	            "📌 Loan Status: %s\n" +
+	            (refundAmount > 0 ? "🔁 ₹%.2f has been refunded (excess payment)." : ""),
+	            usedAmount, paidEmis, emi,
+	            remainingAmount,
+	            (loan.getLoanStatus() == LoanStatus.PAID ? "✅ PAID" : "⏳ " + loan.getLoanStatus()),
+	            refundAmount
 	        );
 
 	    } catch (Exception e) {
@@ -322,21 +320,47 @@ public class ILoanRepositoryImpl implements ILoanRepository {
 	    }
 	}
 
-	public void updateLoanAfterRepayment(Loan loan) throws Exception {
-		try {
+//	Was updating the loan table(Data Integrity issue original data lost)
+//	public void updateLoanAfterRepayment(Loan loan) throws Exception {
+//		try {
+//	        connection = ConnectionHelper.getConnection();
+//	        String cmd = "update loan set principalamount = ?, loanterm = ?, loanstatus = ? where loanid = ?";
+//	        pst = connection.prepareStatement(cmd);
+//	        pst.setDouble(1, loan.getPrincipalAmount());
+//	        pst.setInt(2, loan.getLoanTenure()); 
+//	        pst.setString(3, loan.getLoanStatus().toString());
+//	        pst.setInt(4, loan.getLoanId());
+//	        pst.executeUpdate();
+//	    } catch (Exception e) {
+//	        System.out.println("❌ Failed to update loan: " + e.getMessage());
+//	        e.printStackTrace();
+//	    }
+//	}
+	
+	public void logRepayment(int loanId, double paymentAmount, int emisPaid, double remainingAmount) throws Exception {
+	    connection = ConnectionHelper.getConnection();
+	    String cmd = "insert into loan_repayment (loanid, payment_amount, emis_paid, remaining_amount) values (?, ?, ?, ?)";
+	    pst = connection.prepareStatement(cmd);
+	    pst.setInt(1, loanId);
+	    pst.setDouble(2, paymentAmount);
+	    pst.setInt(3, emisPaid);
+	    pst.setDouble(4, remainingAmount);
+	    pst.executeUpdate();
+	}
+
+
+	
+	public void updateLoanStatusIfFullyPaid(Loan loan) throws Exception {
+	    if (loan.getLoanStatus() == LoanStatus.PAID) {
 	        connection = ConnectionHelper.getConnection();
-	        String cmd = "UPDATE loan SET principalamount = ?, loanterm = ?, loanstatus = ? WHERE loanid = ?";
+	        String cmd = "update loan set loanstatus = ? where loanid = ?";
 	        pst = connection.prepareStatement(cmd);
-	        pst.setDouble(1, loan.getPrincipalAmount());
-	        pst.setInt(2, loan.getLoanTenure()); 
-	        pst.setString(3, loan.getLoanStatus().toString());
-	        pst.setInt(4, loan.getLoanId());
+	        pst.setString(1, "PAID");
+	        pst.setInt(2, loan.getLoanId());
 	        pst.executeUpdate();
-	    } catch (Exception e) {
-	        System.out.println("❌ Failed to update loan: " + e.getMessage());
-	        e.printStackTrace();
 	    }
 	}
+
 
 	@Override
 	public List<Loan> getLoansByCustomerId(int customerId) throws InvalidLoanException {
