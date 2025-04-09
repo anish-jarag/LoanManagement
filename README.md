@@ -7,6 +7,8 @@ A Java-based Loan Management System developed as part of the Hexaware Coding Cha
 ## 📁 Project Structure
 
 ```
+├── resource
+│   ├── db.properties
 com.java.loanmanagement
 ├── dao
 │   ├── ILoanRepository.java
@@ -31,12 +33,13 @@ com.java.loanmanagement
 
 - 📝 **Apply for Loan** (HomeLoan / CarLoan)
 - 🔍 **View Loan by ID**
+- 🔍 **Search Loans by Customer ID**
 - 📋 **View All Loans**
 - 📈 **Calculate Interest & EMI**
 - 📊 **Check & Update Loan Status** (auto-approved if credit score > 650)
 - 💸 **Loan Repayment** with overpayment handling & remaining amount display
 - 📖 **Loan Repayment Logs** stored in a separate `loan_repayment` table
-- 🔎 **Search Loans by Customer ID**
+
 
 ---
 
@@ -69,23 +72,14 @@ com.java.loanmanagement
 
 2. Create the MySQL database and tables using the provided schema. (SQL SCRIPT included)
 
-3. Update your database credentials in `ConnectionHelper.java`.
+3. Update your database credentials in `db.properties`.
 
 4. Compile and run:
    ```bash
    javac com/java/loanmanagement/LoanManagementMain.java
    java com.java.loanmanagement.LoanManagementMain
    ```
-
----
-
-## 🔒 Admin Notes
-
-- Avoid modifying principal or loan tenure after loan approval.
-- All repayments are **logged** with amount paid, EMIs covered, and remaining balance.
-- Repayment overpayments are **capped** and **extra amount ignored** (not stored).
-- Subclass-specific data (like `propertyAddress` or `carModel`) is captured **post-approval**.
-
+   
 ---
 
 ## 👨‍💼 Author
@@ -93,11 +87,3 @@ com.java.loanmanagement
 **Anish Jarag**  
 Hexaware Training - Coding Challenge  
 [GitHub Profile](https://github.com/your-username)
-
----
-
-## 📃 License
-
-This project is for academic and training purposes only.  
-All rights reserved © Hexaware Technologies.
-
