@@ -82,8 +82,3 @@ com.java.loanmanagement
    
 ---
 
-## 👨‍💼 Author
-
-**Anish Jarag**  
-Hexaware Training - Coding Challenge  
-[GitHub Profile](https://github.com/your-username)
