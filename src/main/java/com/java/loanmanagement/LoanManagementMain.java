@@ -50,7 +50,7 @@ public class LoanManagementMain {
 
             System.out.print("\nEnter Your Choice: ");
             choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine(); 
 
             switch (choice) {
                 case 1:
